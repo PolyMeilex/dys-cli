@@ -13,4 +13,3 @@
 ## Drop Files
 
 ![img](https://i.imgur.com/1HQ97UR.png)
-'
