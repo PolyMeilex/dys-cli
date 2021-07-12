@@ -38,12 +38,11 @@ fn main() {
     let application = gtk::Application::new(
         Some("io.github.polymeiles.dady"),
         gio::ApplicationFlags::HANDLES_COMMAND_LINE,
-    )
-    .expect("Initialization failed...");
+    );
 
     application.connect_command_line(|app, cli| {
-        let opts = if cli.get_is_remote() {
-            let opts: Result<Opts, clap::Error> = Opts::try_parse_from(cli.get_arguments());
+        let opts = if cli.is_remote() {
+            let opts: Result<Opts, clap::Error> = Opts::try_parse_from(cli.arguments());
 
             if let Err(err) = &opts {
                 cli.print_err(format!("{}", err));
@@ -51,7 +50,7 @@ fn main() {
 
             opts.ok()
         } else {
-            let opts = Opts::parse_from(cli.get_arguments());
+            let opts = Opts::parse_from(cli.arguments());
             Some(opts)
         };
 
@@ -62,7 +61,7 @@ fn main() {
             };
 
             win.connect_key_press_event(move |win, key| {
-                let kv = key.get_keyval();
+                let kv = key.keyval();
 
                 use gdk::keys::constants::{q, Escape};
                 if kv == Escape || kv == q {
@@ -76,6 +75,5 @@ fn main() {
         0
     });
 
-    let args: Vec<String> = std::env::args().collect();
-    application.run(&args);
+    application.run();
 }

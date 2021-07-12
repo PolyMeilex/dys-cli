@@ -1,13 +1,17 @@
 use gio::prelude::*;
 use gtk::prelude::*;
 
-fn build_files_box(files: &[gio::File], targets: &[gtk::TargetEntry]) -> gtk::Box {
+fn build_files_box(
+    win: gtk::ApplicationWindow,
+    files: &[gio::File],
+    targets: &[gtk::TargetEntry],
+) -> gtk::Box {
     let vbox = gtk::BoxBuilder::new()
         .orientation(gtk::Orientation::Vertical)
         .build();
 
     for file in files.iter() {
-        let base = file.get_basename().expect("Path Error");
+        let base = file.basename().expect("Path Error");
         let base = base.to_str().expect("Path Error");
 
         let button = gtk::ButtonBuilder::new().expand(true).parent(&vbox).build();
@@ -18,9 +22,14 @@ fn build_files_box(files: &[gio::File], targets: &[gtk::TargetEntry]) -> gtk::Bo
             gdk::DragAction::COPY | gdk::DragAction::LINK | gdk::DragAction::ASK,
         );
 
-        let uri = file.get_uri().to_string();
+        let uri = file.uri().to_string();
         button.connect_drag_data_get(move |_, _, s, _, _| {
             s.set_uris(&[&uri]);
+        });
+
+        let win = win.clone();
+        button.connect_drag_end(move |_, _| {
+            win.close();
         });
 
         let hbox = gtk::BoxBuilder::new()
@@ -36,7 +45,7 @@ fn build_files_box(files: &[gio::File], targets: &[gtk::TargetEntry]) -> gtk::Bo
                 Some(&gio::Cancellable::new()),
             )
             .ok()
-            .and_then(|info| info.get_icon());
+            .and_then(|info| info.icon());
 
         if let Some(icon) = icon {
             gtk::ImageBuilder::new()
@@ -52,7 +61,11 @@ fn build_files_box(files: &[gio::File], targets: &[gtk::TargetEntry]) -> gtk::Bo
     vbox
 }
 
-fn build_all_files_button(files: &[gio::File], targets: &[gtk::TargetEntry]) -> gtk::ToggleButton {
+fn build_all_files_button(
+    win: gtk::ApplicationWindow,
+    files: &[gio::File],
+    targets: &[gtk::TargetEntry],
+) -> gtk::ToggleButton {
     let button = gtk::ToggleButtonBuilder::new().expand(true).build();
 
     // Button
@@ -77,14 +90,15 @@ fn build_all_files_button(files: &[gio::File], targets: &[gtk::TargetEntry]) -> 
                 .build();
         }
 
-        let uris: Vec<_> = files
-            .iter()
-            .map(|file| file.get_uri().to_string())
-            .collect();
+        let uris: Vec<_> = files.iter().map(|file| file.uri().to_string()).collect();
 
         button.connect_drag_data_get(move |_, _, s, _, _| {
             let refs: Vec<&str> = uris.iter().map(|u| u.as_str()).collect();
             s.set_uris(&refs);
+        });
+
+        button.connect_drag_end(move |_, _| {
+            win.close();
         });
 
         button.drag_source_set(
@@ -98,17 +112,23 @@ fn build_all_files_button(files: &[gio::File], targets: &[gtk::TargetEntry]) -> 
 }
 
 pub fn build(application: &gtk::Application, sources: &Vec<String>) -> gtk::ApplicationWindow {
+    #[cfg(feature = "dock")]
+    let type_hint = gdk::WindowTypeHint::Dock;
+    #[cfg(not(feature = "dock"))]
+    let type_hint = gdk::WindowTypeHint::Dialog;
+
     let window = gtk::ApplicationWindowBuilder::new()
         .application(application)
-        .title("Dady")
+        .title("DYS")
         .default_width(200)
-        .type_hint(gdk::WindowTypeHint::Dialog)
+        .type_hint(type_hint)
+        .window_position(gtk::WindowPosition::Center)
         .events(gdk::EventMask::KEY_PRESS_MASK)
         .build();
 
     let files: Vec<_> = sources
         .into_iter()
-        .map(|s| gio::File::new_for_path(s))
+        .map(|s| gio::File::for_path(s))
         .collect();
 
     let targets = vec![gtk::TargetEntry::new(
@@ -118,7 +138,7 @@ pub fn build(application: &gtk::Application, sources: &Vec<String>) -> gtk::Appl
     )];
 
     if files.len() == 1 {
-        let files_box = build_files_box(&files, &targets);
+        let files_box = build_files_box(window.clone(), &files, &targets);
         window.add(&files_box);
         window.show_all();
     } else if files.len() > 1 {
@@ -129,14 +149,14 @@ pub fn build(application: &gtk::Application, sources: &Vec<String>) -> gtk::Appl
             .parent(&window)
             .build();
 
-        let files_button = build_all_files_button(&files, &targets);
-        let files_box = build_files_box(&files, &targets);
+        let files_button = build_all_files_button(window.clone(), &files, &targets);
+        let files_box = build_files_box(window.clone(), &files, &targets);
 
         {
             let window = window.clone();
             let files_box = files_box.clone();
             files_button.connect_clicked(move |btn| {
-                if btn.get_active() {
+                if btn.is_active() {
                     files_box.show_all();
                 } else {
                     files_box.hide();

@@ -1,12 +1,18 @@
 use gtk::prelude::*;
 
 pub fn build(application: &gtk::Application) -> gtk::ApplicationWindow {
+    #[cfg(feature = "dock")]
+    let type_hint = gdk::WindowTypeHint::Dock;
+    #[cfg(not(feature = "dock"))]
+    let type_hint = gdk::WindowTypeHint::Dialog;
+
     let window = gtk::ApplicationWindowBuilder::new()
         .application(application)
-        .title("Dady")
+        .title("DYS")
         .default_height(200)
         .default_width(200)
-        .type_hint(gdk::WindowTypeHint::Dialog)
+        .type_hint(type_hint)
+        .window_position(gtk::WindowPosition::Center)
         .build();
 
     let targets = vec![
@@ -18,13 +24,9 @@ pub fn build(application: &gtk::Application) -> gtk::ApplicationWindow {
     window.drag_dest_set(gtk::DestDefaults::ALL, &targets, gdk::DragAction::COPY);
 
     window.connect_drag_data_received(move |win, _, _, _, s, _, _| {
-        match s.get_data_type().name().as_str() {
+        match s.data_type().name().as_str() {
             "text/uri-list" => {
-                let uris: Vec<String> = s
-                    .get_uris()
-                    .into_iter()
-                    .map(|uri| uri.to_string())
-                    .collect();
+                let uris: Vec<String> = s.uris().into_iter().map(|uri| uri.to_string()).collect();
 
                 let out = uris.join("\n");
                 print!("{}", out);
@@ -32,7 +34,7 @@ pub fn build(application: &gtk::Application) -> gtk::ApplicationWindow {
                 win.close();
             }
             _ => {
-                let text = s.get_text().map(|gs| gs.to_string()).unwrap_or_default();
+                let text = s.text().map(|gs| gs.to_string()).unwrap_or_default();
                 print!("{}", text);
 
                 win.close();
