@@ -1,7 +1,6 @@
-use gio::prelude::*;
-use gtk::prelude::*;
+use adw::prelude::*;
 
-fn build_drag_source(win: gtk::ApplicationWindow, files: &[gio::File]) -> gtk::DragSource {
+fn build_drag_source(win: adw::ApplicationWindow, files: &[gio::File]) -> gtk::DragSource {
     let files = gdk::FileList::from_array(files);
     let content = gdk::ContentProvider::for_value(&files.to_value());
 
@@ -14,11 +13,13 @@ fn build_drag_source(win: gtk::ApplicationWindow, files: &[gio::File]) -> gtk::D
     source
 }
 
-fn build_file_row(win: gtk::ApplicationWindow, file: &gio::File) -> gtk::Button {
+fn build_file_row(win: adw::ApplicationWindow, file: &gio::File) -> adw::ActionRow {
     let base = file.basename().expect("Path Error");
-    let base = base.to_str().expect("Path Error");
-
-    let button = gtk::Button::builder().build();
+    let title = base.to_str().expect("Path Error");
+    let row = adw::ActionRow::builder()
+        .title(title)
+        .activatable(true)
+        .build();
 
     let icon = file
         .query_info(
@@ -29,48 +30,31 @@ fn build_file_row(win: gtk::ApplicationWindow, file: &gio::File) -> gtk::Button 
         .ok()
         .and_then(|info| info.icon());
 
-    let hbox = gtk::Box::builder()
-        .orientation(gtk::Orientation::Horizontal)
-        .spacing(6)
-        .build();
-
     if let Some(icon) = icon {
-        hbox.append(&gtk::Image::builder().gicon(&icon).pixel_size(48).build());
+        row.add_prefix(&gtk::Image::builder().gicon(&icon).pixel_size(48).build());
     }
 
-    hbox.append(&gtk::Label::builder().label(base).build());
-    button.set_child(Some(&hbox));
-
-    button.add_controller(build_drag_source(win, std::slice::from_ref(file)));
-    button
+    row.add_controller(build_drag_source(win, std::slice::from_ref(file)));
+    row
 }
 
-fn build_all_files_button(win: gtk::ApplicationWindow, files: &[gio::File]) -> gtk::ToggleButton {
-    let button = gtk::ToggleButton::builder().build();
+fn build_all_files_button(
+    win: adw::ApplicationWindow,
+    files: &[gio::File],
+) -> adw::PreferencesGroup {
+    let grp = adw::PreferencesGroup::new();
 
-    let hbox = gtk::Box::builder()
-        .orientation(gtk::Orientation::Horizontal)
-        .spacing(6)
-        .build();
+    let row = adw::ButtonRow::builder().title("Drag All").build();
 
-    button.set_child(Some(&hbox));
+    row.set_start_icon_name(Some("edit-select-all"));
+    row.add_controller(build_drag_source(win, files));
 
-    hbox.append(
-        &gtk::Image::builder()
-            .icon_name("edit-select-all")
-            .pixel_size(48)
-            .build(),
-    );
-
-    hbox.append(&gtk::Label::builder().label("Drag All").build());
-
-    button.add_controller(build_drag_source(win, files));
-
-    button
+    grp.add(&row);
+    grp
 }
 
-pub fn build(application: &gtk::Application, sources: &[String]) -> gtk::ApplicationWindow {
-    let window = gtk::ApplicationWindow::builder()
+pub fn build(application: &adw::Application, sources: &[String]) -> adw::ApplicationWindow {
+    let window = adw::ApplicationWindow::builder()
         .application(application)
         .title("DYS")
         .default_width(200)
@@ -79,26 +63,31 @@ pub fn build(application: &gtk::Application, sources: &[String]) -> gtk::Applica
     let files: Vec<_> = sources.iter().map(gio::File::for_path).collect();
 
     if files.len() == 1 {
-        let vbox = gtk::Box::builder()
-            .orientation(gtk::Orientation::Vertical)
-            .build();
+        let grp = adw::PreferencesGroup::new();
+        grp.add(&build_file_row(window.clone(), &files[0]));
 
-        vbox.append(&build_file_row(window.clone(), &files[0]));
-
-        window.set_child(Some(&vbox));
+        window.set_content(Some(&grp));
         window.present();
     } else if files.len() > 1 {
         let vbox = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
+            .spacing(5)
+            .margin_bottom(10)
+            .margin_top(10)
+            .margin_start(10)
+            .margin_end(10)
             .build();
 
-        vbox.append(&build_all_files_button(window.clone(), &files));
+        let grp = adw::PreferencesGroup::new();
 
         for file in files.iter() {
-            vbox.append(&build_file_row(window.clone(), file));
+            grp.add(&build_file_row(window.clone(), file));
         }
 
-        window.set_child(Some(&vbox));
+        vbox.append(&build_all_files_button(window.clone(), &files));
+        vbox.append(&grp);
+
+        window.set_content(Some(&vbox));
         window.present();
     } else {
         window.application().unwrap().quit();
