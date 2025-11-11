@@ -7,16 +7,16 @@ use ffi::GPrint;
 use gio::prelude::*;
 use gtk::prelude::*;
 
-use clap::{AppSettings, Clap};
+use clap::{AppSettings, Parser as _};
 
-#[derive(Clap)]
+#[derive(clap::Parser)]
 #[clap(version = "1.0", author = "Poly <marynczak.bartlomiej@gmail.com>", setting = AppSettings::ColoredHelp)]
 struct Opts {
     #[clap(subcommand)]
     subcmd: Commands,
 }
 
-#[derive(Clap)]
+#[derive(clap::Parser)]
 enum Commands {
     #[clap(version = "1.0", setting = AppSettings::ColoredHelp)]
     Drag(DragCommand),
@@ -25,13 +25,13 @@ enum Commands {
 }
 
 /// Drag source mode
-#[derive(Clap)]
+#[derive(clap::Parser)]
 struct DragCommand {
     /// List of files
     source: Vec<String>,
 }
 /// Drop target mode
-#[derive(Clap)]
+#[derive(clap::Parser)]
 struct DropCommand;
 
 fn main() {
