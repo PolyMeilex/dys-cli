@@ -6,7 +6,7 @@ pub fn build(application: &gtk::Application) -> gtk::ApplicationWindow {
     #[cfg(not(feature = "dock"))]
     let type_hint = gdk::WindowTypeHint::Dialog;
 
-    let window = gtk::ApplicationWindowBuilder::new()
+    let window = gtk::ApplicationWindow::builder()
         .application(application)
         .title("DYS")
         .default_height(200)
@@ -42,7 +42,7 @@ pub fn build(application: &gtk::Application) -> gtk::ApplicationWindow {
         }
     });
 
-    let root = gtk::BoxBuilder::new()
+    let root = gtk::Box::builder()
         .orientation(gtk::Orientation::Vertical)
         .valign(gtk::Align::Center)
         .halign(gtk::Align::Center)
@@ -51,13 +51,13 @@ pub fn build(application: &gtk::Application) -> gtk::ApplicationWindow {
         .parent(&window)
         .build();
 
-    let _image = gtk::ImageBuilder::new()
+    let _image = gtk::Image::builder()
         .icon_name("insert-image")
         .pixel_size(48)
         .parent(&root)
         .build();
 
-    let _label = gtk::LabelBuilder::new()
+    let _label = gtk::Label::builder()
         .label("Drop here")
         .parent(&root)
         .build();

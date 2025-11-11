@@ -68,7 +68,7 @@ fn main() {
                     win.close();
                 }
 
-                gtk::Inhibit(true)
+                glib::Propagation::Stop
             });
         }
 

@@ -6,7 +6,7 @@ fn build_files_box(
     files: &[gio::File],
     targets: &[gtk::TargetEntry],
 ) -> gtk::Box {
-    let vbox = gtk::BoxBuilder::new()
+    let vbox = gtk::Box::builder()
         .orientation(gtk::Orientation::Vertical)
         .build();
 
@@ -14,7 +14,7 @@ fn build_files_box(
         let base = file.basename().expect("Path Error");
         let base = base.to_str().expect("Path Error");
 
-        let button = gtk::ButtonBuilder::new().expand(true).parent(&vbox).build();
+        let button = gtk::Button::builder().expand(true).parent(&vbox).build();
 
         button.drag_source_set(
             gdk::ModifierType::BUTTON1_MASK,
@@ -32,7 +32,7 @@ fn build_files_box(
             win.close();
         });
 
-        let hbox = gtk::BoxBuilder::new()
+        let hbox = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .spacing(6)
             .parent(&button)
@@ -48,14 +48,14 @@ fn build_files_box(
             .and_then(|info| info.icon());
 
         if let Some(icon) = icon {
-            gtk::ImageBuilder::new()
+            gtk::Image::builder()
                 .gicon(&icon)
                 .pixel_size(48)
                 .parent(&hbox)
                 .build();
         }
 
-        gtk::LabelBuilder::new().label(&base).parent(&hbox).build();
+        gtk::Label::builder().label(base).parent(&hbox).build();
     }
 
     vbox
@@ -66,25 +66,25 @@ fn build_all_files_button(
     files: &[gio::File],
     targets: &[gtk::TargetEntry],
 ) -> gtk::ToggleButton {
-    let button = gtk::ToggleButtonBuilder::new().expand(true).build();
+    let button = gtk::ToggleButton::builder().expand(true).build();
 
     // Button
     {
         // Button content
         {
-            let hbox = gtk::BoxBuilder::new()
+            let hbox = gtk::Box::builder()
                 .orientation(gtk::Orientation::Horizontal)
                 .spacing(6)
                 .parent(&button)
                 .build();
 
-            gtk::ImageBuilder::new()
+            gtk::Image::builder()
                 .icon_name("edit-select-all")
                 .pixel_size(48)
                 .parent(&hbox)
                 .build();
 
-            gtk::LabelBuilder::new()
+            gtk::Label::builder()
                 .label("Drag All")
                 .parent(&hbox)
                 .build();
@@ -117,7 +117,7 @@ pub fn build(application: &gtk::Application, sources: &Vec<String>) -> gtk::Appl
     #[cfg(not(feature = "dock"))]
     let type_hint = gdk::WindowTypeHint::Dialog;
 
-    let window = gtk::ApplicationWindowBuilder::new()
+    let window = gtk::ApplicationWindow::builder()
         .application(application)
         .title("DYS")
         .default_width(200)
@@ -142,7 +142,7 @@ pub fn build(application: &gtk::Application, sources: &Vec<String>) -> gtk::Appl
         window.add(&files_box);
         window.show_all();
     } else if files.len() > 1 {
-        let root = gtk::BoxBuilder::new()
+        let root = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
             .expand(true)
             .spacing(6)
