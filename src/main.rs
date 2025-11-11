@@ -35,7 +35,7 @@ struct DragCommand {
 struct DropCommand;
 
 fn main() {
-    let application = gtk::Application::new(
+    let application = adw::Application::new(
         Some("io.github.polymeiles.dys"),
         gio::ApplicationFlags::HANDLES_COMMAND_LINE,
     );

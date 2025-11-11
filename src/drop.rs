@@ -1,8 +1,8 @@
+use adw::prelude::*;
 use gdk::FileList;
-use gtk::prelude::*;
 
-pub fn build(application: &gtk::Application) -> gtk::ApplicationWindow {
-    let window = gtk::ApplicationWindow::builder()
+pub fn build(application: &adw::Application) -> adw::ApplicationWindow {
+    let window = adw::ApplicationWindow::builder()
         .application(application)
         .title("DYS")
         .default_height(200)
@@ -42,7 +42,7 @@ pub fn build(application: &gtk::Application) -> gtk::ApplicationWindow {
     });
 
     window.add_controller(target);
-    window.set_child(Some(&root));
+    window.set_content(Some(&root));
     window.present();
 
     window
