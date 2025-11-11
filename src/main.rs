@@ -7,10 +7,10 @@ use ffi::GPrint;
 use gio::prelude::*;
 use gtk::prelude::*;
 
-use clap::{AppSettings, Parser as _};
+use clap::Parser as _;
 
 #[derive(clap::Parser)]
-#[clap(version = "1.0", author = "Poly <marynczak.bartlomiej@gmail.com>", setting = AppSettings::ColoredHelp)]
+#[clap(version = "1.0", author = "Poly <marynczak.bartlomiej@gmail.com>")]
 struct Opts {
     #[clap(subcommand)]
     subcmd: Commands,
@@ -18,9 +18,9 @@ struct Opts {
 
 #[derive(clap::Parser)]
 enum Commands {
-    #[clap(version = "1.0", setting = AppSettings::ColoredHelp)]
+    #[clap(version = "1.0")]
     Drag(DragCommand),
-    #[clap(version = "1.0", setting = AppSettings::ColoredHelp)]
+    #[clap(version = "1.0")]
     Drop(DropCommand),
 }
 
