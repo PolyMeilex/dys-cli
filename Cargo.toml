@@ -10,10 +10,10 @@ dock = []
 
 [dependencies]
 clap = { version = "4.5.51", features = ["derive"] }
-gtk = { version = "0.18.2" }
-gdk = "0.18.0"
-gio = "0.18.4"
-glib = "0.18.5"
+gtk = { package = "gtk4", features = ["v4_10"], version = "0.10.2" }
+gdk = { package = "gdk4", features = ["v4_10"], version = "0.10.1" }
+gio = "0.21.4"
+glib = "0.21.4"
 
-gio-sys = "0.18.1"
+gio-sys = "0.21.2"
 

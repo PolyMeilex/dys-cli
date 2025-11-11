@@ -36,7 +36,7 @@ struct DropCommand;
 
 fn main() {
     let application = gtk::Application::new(
-        Some("io.github.polymeiles.dady"),
+        Some("io.github.polymeiles.dys"),
         gio::ApplicationFlags::HANDLES_COMMAND_LINE,
     );
 
@@ -45,7 +45,7 @@ fn main() {
             let opts: Result<Opts, clap::Error> = Opts::try_parse_from(cli.arguments());
 
             if let Err(err) = &opts {
-                cli.print_err(format!("{}", err));
+                cli.print_err(err.to_string());
             }
 
             opts.ok()
@@ -60,19 +60,22 @@ fn main() {
                 Commands::Drop(_) => drop::build(app),
             };
 
-            win.connect_key_press_event(move |win, key| {
-                let kv = key.keyval();
-
-                use gdk::keys::constants::{q, Escape};
-                if kv == Escape || kv == q {
-                    win.close();
+            let controller = gtk::EventControllerKey::new();
+            controller.connect_key_pressed({
+                let win = win.clone();
+                move |_, key, _, _| {
+                    if key == gdk::Key::Escape || key == gdk::Key::Q {
+                        win.close();
+                        glib::Propagation::Stop
+                    } else {
+                        glib::Propagation::Proceed
+                    }
                 }
-
-                glib::Propagation::Stop
             });
+            win.add_controller(controller);
         }
 
-        0
+        glib::ExitCode::SUCCESS
     });
 
     application.run();

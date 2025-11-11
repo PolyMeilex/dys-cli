@@ -1,6 +1,7 @@
 use glib::translate::ToGlibPtr;
 
 pub trait GPrint {
+    #[allow(unused)]
     fn print<P: AsRef<std::ffi::OsStr>>(&self, format: P);
 
     fn print_err<P: AsRef<std::ffi::OsStr>>(&self, format: P);
